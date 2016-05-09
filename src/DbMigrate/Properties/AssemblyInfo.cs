@@ -1,3 +1,3 @@
 ﻿using System.Reflection;
-[assembly: AssemblyTitle("DbUp.Console")]
+[assembly: AssemblyTitle("DbMigrate")]
 [assembly: AssemblyDescription("")]

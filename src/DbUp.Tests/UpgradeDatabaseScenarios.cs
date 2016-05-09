@@ -5,6 +5,7 @@ using DbUp.Builder;
 using DbUp.Engine;
 using DbUp.Engine.Output;
 using DbUp.Engine.Transactions;
+using DbUp.Migrations;
 using DbUp.SQLite;
 using DbUp.SQLite.Helpers;
 using DbUp.Support.SQLite;
@@ -242,6 +243,16 @@ namespace DbUp.Tests
             public IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager)
             {
                 return sqlScripts;
+            }
+
+            public IEnumerable<DBMigration> GetDBMigrations()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerable<SqlScript> IScriptProvider.GetScripts(IConnectionManager connectionManager)
+            {
+                throw new NotImplementedException();
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Data.Common;
 using DbUp.Engine;
 using DbUp.Engine.Output;
 using DbUp.Engine.Transactions;
+using DbUp.Entities;
 
 namespace DbUp.Support.Postgresql
 {
@@ -82,6 +83,11 @@ namespace DbUp.Support.Postgresql
             return scripts.ToArray();
         }
 
+        public IEnumerable<DBMigration> GetMigratedDBVersions()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Records an upgrade script for a database.
         /// </summary>
@@ -127,6 +133,21 @@ namespace DbUp.Support.Postgresql
                     command.ExecuteNonQuery();
                 }
             });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="migrationScript"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        public void StoreExecutedMigrationScript(DBMigrationScript migrationScript)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasDBVersionMigrated(long versionId, MigrationTypes dbMigrationType)
+        {
+            throw new NotImplementedException();
         }
 
         private static string GetExecutedScriptsSql(string schema, string table)

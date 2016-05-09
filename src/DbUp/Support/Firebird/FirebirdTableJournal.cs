@@ -5,6 +5,7 @@ using DbUp.Engine.Transactions;
 using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
+using DbUp.Entities;
 
 namespace DbUp.Support.Firebird
 {
@@ -108,10 +109,26 @@ namespace DbUp.Support.Firebird
             return string.Format("BI_{0}ID", tableName);
         }
 
+        public IEnumerable<DBMigration> GetMigratedDBVersions()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StoreExecutedMigrationScript(DBMigrationScript migrationScript)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasDBVersionMigrated(long versionId, MigrationTypes dbMigrationType)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Records an upgrade script for a database.
         /// </summary>
         /// <param name="script">The script.</param>
+        /// <param name="migrationPerformType"></param>
         public void StoreExecutedScript(SqlScript script)
         {
             var exists = DoesTableExist();

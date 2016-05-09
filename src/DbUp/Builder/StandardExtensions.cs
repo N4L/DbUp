@@ -100,13 +100,13 @@ public static class StandardExtensions
     /// Adds a custom script provider to the upgrader.
     /// </summary>
     /// <param name="builder">The builder.</param>
-    /// <param name="scriptProvider">The script provider.</param>
+    /// <param name="scriptProviders">The script providers.</param>
     /// <returns>
     /// The same builder
     /// </returns>
-    public static UpgradeEngineBuilder WithScripts(this UpgradeEngineBuilder builder, IScriptProvider scriptProvider)
+    public static UpgradeEngineBuilder WithScripts(this UpgradeEngineBuilder builder, params IScriptProvider[] scriptProviders)
     {
-        builder.Configure(c => c.ScriptProviders.Add(scriptProvider));
+        builder.Configure(c => c.ScriptProviders.AddRange(scriptProviders));
         return builder;
     }
 
@@ -168,13 +168,14 @@ public static class StandardExtensions
     /// Adds all scripts from a folder on the file system.
     /// </summary>
     /// <param name="builder">The builder.</param>
-    /// <param name="path">The directory path.</param>
+    /// <param name="schemaPath">The schema directory path.</param>
+    /// <param name="dataPath">The data directory path.</param>
     /// <returns>
     /// The same builder
     /// </returns>
-    public static UpgradeEngineBuilder WithScriptsFromFileSystem(this UpgradeEngineBuilder builder, string path)
+    public static UpgradeEngineBuilder WithScriptsFromFileSystem(this UpgradeEngineBuilder builder, string schemaPath, string dataPath)
     {
-        return WithScripts(builder, new FileSystemScriptProvider(path));
+        return WithScripts(builder, new FileSystemScriptProvider(schemaPath), new FileSystemScriptProvider(dataPath));
     }
 
     /// <summary>
@@ -480,4 +481,10 @@ public static class StandardExtensions
     {
         return WithScripts(builder, new EmbeddedScriptsProvider(assemblies, filter, encoding));
     }
+
+    public static UpgradeEngineBuilder WithScriptsFromDBMigrationClass(this UpgradeEngineBuilder builder, string schemaPath, string dataPath)
+    {
+        return WithScripts(builder, new DBMigrationScriptProvider(schemaPath), new DBMigrationScriptProvider(dataPath));
+    }
+
 }

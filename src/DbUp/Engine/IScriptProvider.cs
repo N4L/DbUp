@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DbUp.Engine.Transactions;
+using DbUp.Migrations;
 
 namespace DbUp.Engine
 {
@@ -13,5 +14,7 @@ namespace DbUp.Engine
         /// Gets all scripts that should be executed.
         /// </summary>
         IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager);
+
+        IEnumerable<DBMigration> GetDBMigrations();
     }
 }

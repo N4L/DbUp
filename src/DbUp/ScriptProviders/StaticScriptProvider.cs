@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DbUp.Engine;
 using DbUp.Engine.Transactions;
+using DbUp.Migrations;
 
 namespace DbUp.ScriptProviders
 {
@@ -27,6 +28,16 @@ namespace DbUp.ScriptProviders
         public IEnumerable<SqlScript> GetScripts(IConnectionManager connectionManager)
         {
             return scripts;
+        }
+
+        public IEnumerable<DBMigration> GetDBMigrations()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerable<DBMigration> IScriptProvider.GetDBMigrations()
+        {
+            throw new NotImplementedException();
         }
     }
 }

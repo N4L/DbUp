@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using DbUp.Engine;
 using DbUp.Engine.Transactions;
+using DbUp.Migrations;
 
 namespace DbUp.ScriptProviders
 {
@@ -74,6 +75,9 @@ namespace DbUp.ScriptProviders
             return files.Select(x => SqlScript.FromFile(x, encoding)).ToList();
         }
 
-
+        public IEnumerable<DBMigration> GetDBMigrations()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

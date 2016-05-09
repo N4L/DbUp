@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using DbUp.Builder;
+using DbUp.Entities;
+using DbUp.Migrations;
 
 namespace DbUp.Engine
 {
@@ -37,6 +40,70 @@ namespace DbUp.Engine
         public bool TryConnect(out string errorMessage)
         {
             return configuration.ConnectionManager.TryConnect(configuration.Log, out errorMessage);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="toVersionId"></param>
+        /// <returns></returns>
+        public DatabaseUpgradeResult PerformDBMigration(long toVersionId)
+        {
+            var executed = new List<DBMigrationScript>();
+
+            string executedScriptName = null;
+            try
+            {
+                using (configuration.ConnectionManager.OperationStarting(configuration.Log, executed.Cast<SqlScript>().ToList()))
+                {
+
+                    configuration.Log.WriteInformation("Beginning database migration");
+
+                    var migrationsToExecute = GetDBMigrationsToExecuteInsideOperation(toVersionId);
+
+                    if (migrationsToExecute.Count == 0)
+                    {
+                        configuration.Log.WriteInformation("No new Migration need to be executed - completing.");
+                        return new DatabaseUpgradeResult(executed.Cast<SqlScript>().ToList(), true, null);
+                    }
+
+                    configuration.ScriptExecutor.VerifySchema();
+
+                    foreach (var migration in migrationsToExecute)
+                    {
+                        executedScriptName = migration.Name;
+
+                        var sqlScript = migration.MigrationPerformType == MigrationPerformTypes.Up
+                            ? new SqlScript(migration.Name, migration.UpScript)
+                            : new SqlScript(migration.Name, migration.DownScript);
+
+                        if (migration.DependentSchemaVersionId.HasValue &&
+                            !configuration.Journal.HasDBVersionMigrated(migration.DependentSchemaVersionId.Value, MigrationTypes.Schema))
+                        {
+                            var ex =
+                                new InvalidOperationException(string.Format("Dependent migration {0} for migration {1} hasn't been executed yet.",
+                                    migration.DependentSchemaVersionId, migration.Name));
+                            configuration.Log.WriteError("Migration failed due to an exception: {0}", ex.ToString());
+                            return new DatabaseUpgradeResult(executed.Cast<SqlScript>().ToList(), false, ex);
+                        }
+
+                        configuration.ScriptExecutor.Execute(sqlScript, configuration.Variables);
+
+                        configuration.Journal.StoreExecutedMigrationScript(migration);
+
+                        executed.Add(migration);
+                    }
+
+                    configuration.Log.WriteInformation("Migration successful");
+                    return new DatabaseUpgradeResult(executed.Cast<SqlScript>().ToList(), true, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Data.Add("Error occurred in script: ", executedScriptName);
+                configuration.Log.WriteError("Migration failed due to an unexpected exception:\r\n{0}", ex.ToString());
+                return new DatabaseUpgradeResult(executed.Cast<SqlScript>().ToList(), false, ex);
+            }
         }
 
         /// <summary>
@@ -102,17 +169,56 @@ namespace DbUp.Engine
         private List<SqlScript> GetScriptsToExecuteInsideOperation()
         {
             var allScripts = configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetScripts(configuration.ConnectionManager));
-            var executedScripts = configuration.Journal.GetExecutedScripts();
+            var migratedDBVersions = configuration.Journal.GetMigratedDBVersions();
 
-            return allScripts.Where(s => !executedScripts.Any(y => y == s.Name)).ToList();
+            return allScripts.Where(s => migratedDBVersions.All(y => y.ScriptName != s.Name)).ToList();
         }
 
-        public List<string> GetExecutedScripts()
+        private List<DBMigrationScript> GetDBMigrationsToExecuteInsideOperation(long toVersionId)
+        {
+            var allMigrations =
+                configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetDBMigrations()).ToList();
+
+            var migratedDBVersions = configuration.Journal.GetMigratedDBVersions();
+
+            var missedMigrationScripts =
+                allMigrations.Where(s => migratedDBVersions.All(y => y.ScriptName != s.FileName) && s.VersionId <= toVersionId)
+                    .Select(m => m.GetType().IsSubclassOf(typeof (DataMigration))
+                        ? new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, string.Empty, MigrationTypes.Data,
+                            ((DataMigration) m).DependentSchemaVersionId, MigrationPerformTypes.Up)
+                        : new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, ((SchemaMigration) m).DownScript, MigrationTypes.Schema, null,
+                            MigrationPerformTypes.Up))
+                    .OrderBy(s => s)
+                    .ToList();
+
+            var downMigrationScripts =
+                allMigrations.Where(
+                    m =>
+                        m.VersionId > toVersionId && migratedDBVersions.Any(s => s.ScriptName == m.FileName) &&
+                        m.GetType().IsSubclassOf(typeof (SchemaMigration)))
+                    .Select(
+                        m =>
+                            new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, ((SchemaMigration) m).DownScript, MigrationTypes.Schema, null,
+                                MigrationPerformTypes.Down))
+                    .OrderByDescending(s => s)
+                    .ToList();
+
+            var migrationsToExecute = new List<DBMigrationScript>();
+            migrationsToExecute.AddRange(missedMigrationScripts);
+            migrationsToExecute.AddRange(downMigrationScripts);
+
+            return migrationsToExecute;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<Entities.DBMigration> GetMigratedDBVersions()
         {
             using (configuration.ConnectionManager.OperationStarting(configuration.Log, new List<SqlScript>()))
             {
-                return configuration.Journal.GetExecutedScripts()
-                    .ToList();
+                return configuration.Journal.GetMigratedDBVersions().ToList();
             }
         }
 

@@ -5,6 +5,7 @@ using DbUp.Engine.Transactions;
 using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
+using DbUp.Entities;
 
 namespace DbUp.Support.MySql
 {
@@ -48,23 +49,42 @@ namespace DbUp.Support.MySql
             return string.Format(
                 @"CREATE TABLE {0} 
                     (
-                        `schemaversionid` INT NOT NULL AUTO_INCREMENT,
-                        `scriptname` VARCHAR(255) NOT NULL,
-                        `applied` TIMESTAMP NOT NULL,
-                        PRIMARY KEY (`schemaversionid`));", tableName);
+                        `Id` INT NOT NULL AUTO_INCREMENT,
+                        `VersionId` LONG NOT NULL,
+                        `MigrationType` INT NOT NULL,
+                        `ScriptName` VARCHAR(512) NOT NULL,
+                        `CreatedOn` TIMESTAMP NOT NULL,
+                        PRIMARY KEY (`Id`));", tableName);
         }
 
-        public string[] GetExecutedScripts()
+        private void EnsureTable()
+        {
+            connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
+            {
+                using (var command = dbCommandFactory())
+                {
+                    command.CommandText = CreateTableSql(schemaTableName);
+
+                    command.CommandType = CommandType.Text;
+                    command.ExecuteNonQuery();
+                }
+
+                log().WriteInformation(string.Format("The {0} table has been created", schemaTableName));
+            });
+        }
+
+        public IEnumerable<DBMigration> GetMigratedDBVersions()
         {
             log().WriteInformation("Fetching list of already executed scripts.");
             var exists = DoesTableExist();
             if (!exists)
             {
                 log().WriteInformation(string.Format("The {0} table could not be found. The database is assumed to be at version 0.", schemaTableName));
-                return new string[0];
+
+                EnsureTable();
             }
 
-            var scripts = new List<string>();
+            var migratedDBVersions = new List<DBMigration>();
             connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
             {
                 using (var command = dbCommandFactory())
@@ -75,12 +95,21 @@ namespace DbUp.Support.MySql
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
-                            scripts.Add((string)reader[0]);
+                            migratedDBVersions.Add(
+                                new DBMigration()
+                                {
+                                    Id = (int)reader["Id"],
+                                    VersionId = long.Parse(reader["VersionId"].ToString()),
+                                    MigrationType = (MigrationTypes)reader["MigrationType"],
+                                    ScriptName = reader["ScriptName"].ToString(),
+                                    CreatedOn = (DateTime)reader["CreatedOn"]
+                                }
+                                );
                     }
                 }
             });
 
-            return scripts.ToArray();
+            return migratedDBVersions;
         }
 
         /// <summary>
@@ -94,18 +123,7 @@ namespace DbUp.Support.MySql
             {
                 log().WriteInformation(string.Format("Creating the {0} table", schemaTableName));
 
-                connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
-                {
-                    using (var command = dbCommandFactory())
-                    {
-                        command.CommandText = CreateTableSql(schemaTableName);
-
-                        command.CommandType = CommandType.Text;
-                        command.ExecuteNonQuery();
-                    }
-
-                    log().WriteInformation(string.Format("The {0} table has been created", schemaTableName));
-                });
+                EnsureTable();
             }
 
             connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
@@ -130,9 +148,111 @@ namespace DbUp.Support.MySql
             });
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="migrationScript"></param>
+        public void StoreExecutedMigrationScript(DBMigrationScript migrationScript)
+        {
+            var exists = DoesTableExist();
+            if (!exists)
+            {
+                log().WriteInformation(string.Format("Creating the {0} table", schemaTableName));
+
+                EnsureTable();
+            }
+
+            connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
+            {
+                using (var command = dbCommandFactory())
+                {
+                    if (migrationScript.MigrationPerformType == MigrationPerformTypes.Up)
+                    {
+                        command.CommandText =
+                            string.Format(
+                                "insert into {0} (VersionId, MigrationType, ScriptName, CreatedOn) values (@versionId, @migrationType, @scriptName, @applied)",
+                                schemaTableName);
+
+                        var versionIdParam = command.CreateParameter();
+                        versionIdParam.ParameterName = "versionId";
+                        versionIdParam.Value = migrationScript.VersionId;
+                        command.Parameters.Add(versionIdParam);
+
+                        var migrationTypeParam = command.CreateParameter();
+                        migrationTypeParam.ParameterName = "migrationType";
+                        migrationTypeParam.Value = migrationScript.MigrationType;
+                        command.Parameters.Add(migrationTypeParam);
+
+                        var scriptNameParam = command.CreateParameter();
+                        scriptNameParam.ParameterName = "scriptName";
+                        scriptNameParam.Value = migrationScript.Name;
+                        command.Parameters.Add(scriptNameParam);
+
+                        var appliedParam = command.CreateParameter();
+                        appliedParam.ParameterName = "applied";
+                        appliedParam.Value = DateTime.Now;
+                        command.Parameters.Add(appliedParam);
+                    }
+                    else
+                    {
+                        command.CommandText =
+                            string.Format("delete from {0} where ScriptName=@scriptName", schemaTableName);
+
+                        var scriptNameParam = command.CreateParameter();
+                        scriptNameParam.ParameterName = "scriptName";
+                        scriptNameParam.Value = migrationScript.Name;
+                        command.Parameters.Add(scriptNameParam);
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    command.ExecuteNonQuery();
+
+                    log().WriteInformation("-- {0} Migration '{1}' Applied", migrationScript.MigrationPerformType.ToString().ToUpper(), migrationScript.Name);
+
+                }
+            });
+        }
+
+        public bool HasDBVersionMigrated(long versionId, MigrationTypes dbMigrationType)
+        {
+            var exists = DoesTableExist();
+            if (!exists)
+            {
+                log().WriteInformation(string.Format("Creating the {0} table", schemaTableName));
+
+                EnsureTable();
+            }
+
+            return connectionManager().ExecuteCommandsWithManagedConnection(dbCommandFactory =>
+            {
+                using (var command = dbCommandFactory())
+                {
+                    command.CommandText =
+                        string.Format(
+                            "select Id from {0} where VersionId=@versionId and MigrationType=@migrationType",
+                            schemaTableName);
+
+                    var versionIdParam = command.CreateParameter();
+                    versionIdParam.ParameterName = "versionId";
+                    versionIdParam.Value = versionId;
+                    command.Parameters.Add(versionIdParam);
+
+                    var migrationTypeParam = command.CreateParameter();
+                    migrationTypeParam.ParameterName = "MigrationType";
+                    migrationTypeParam.Value = (int) dbMigrationType;
+                    command.Parameters.Add(migrationTypeParam);
+
+                    command.CommandType = CommandType.Text;
+                    var excutedMigrationId = command.ExecuteScalar();
+
+                    return excutedMigrationId != null;
+                }
+            });
+        }
+
         private static string GetExecutedScriptsSql(string table)
         {
-            return string.Format("select scriptname from {0} order by scriptname", table);
+            return string.Format("select * from {0} order by VersionId", table);
         }
 
         private bool DoesTableExist()

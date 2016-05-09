@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using DbUp.Helpers;
 using NSubstitute;
 using NUnit.Framework;
@@ -25,7 +26,7 @@ namespace DbUp.Tests.Helpers
 
             upgradeEngine.PerformUpgrade();
 
-            Assert.AreEqual(0, journal.GetExecutedScripts().Length);
+            Assert.AreEqual(0, journal.GetMigratedDBVersions().Count());
         }
     }
 }

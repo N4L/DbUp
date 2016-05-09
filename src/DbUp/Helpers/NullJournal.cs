@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using DbUp.Engine;
+using DbUp.Entities;
 
 namespace DbUp.Helpers
 {
@@ -12,9 +14,9 @@ namespace DbUp.Helpers
         /// Returns an empty array of length 0
         /// </summary>
         /// <returns></returns>
-        public string[] GetExecutedScripts()
+        public IEnumerable<DBMigration> GetMigratedDBVersions()
         {
-            return new string[0];
+            return new List<DBMigration>();
         }
 
         /// <summary>
@@ -23,5 +25,18 @@ namespace DbUp.Helpers
         /// <param name="script"></param>
         public void StoreExecutedScript(SqlScript script)
         { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="migrationScript"></param>
+        public void StoreExecutedMigrationScript(DBMigrationScript migrationScript)
+        {
+        }
+
+        public bool HasDBVersionMigrated(long versionId, MigrationTypes dbMigrationType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

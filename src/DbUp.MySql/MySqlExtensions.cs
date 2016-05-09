@@ -64,7 +64,7 @@ public static class MySqlExtensions
         var builder = new UpgradeEngineBuilder();
         builder.Configure(c => c.ConnectionManager = connectionManager);
         builder.Configure(c => c.ScriptExecutor = new SqlScriptExecutor(() => c.ConnectionManager, () => c.Log, null, () => c.VariablesEnabled, c.ScriptPreprocessors));
-        builder.Configure(c => c.Journal = new MySqlITableJournal(() => c.ConnectionManager, () => c.Log, schema, "schemaversions"));
+        builder.Configure(c => c.Journal = new MySqlITableJournal(() => c.ConnectionManager, () => c.Log, schema, "DBMigration"));
         builder.WithPreprocessor(new MySqlPreprocessor());
         return builder;
     }

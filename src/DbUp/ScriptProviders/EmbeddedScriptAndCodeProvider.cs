@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using DbUp.Engine;
 using DbUp.Engine.Transactions;
+using DbUp.Migrations;
 
 namespace DbUp.ScriptProviders
 {
@@ -48,6 +49,11 @@ namespace DbUp.ScriptProviders
                 .ToList();
 
             return sqlScripts;
+        }
+
+        public IEnumerable<DBMigration> GetDBMigrations()
+        {
+            throw new NotImplementedException();
         }
     }
 }

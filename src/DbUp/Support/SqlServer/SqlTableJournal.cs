@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using DbUp.Engine;
 using DbUp.Engine.Output;
 using DbUp.Engine.Transactions;
+using DbUp.Entities;
 
 namespace DbUp.Support.SqlServer
 {
@@ -81,6 +82,11 @@ namespace DbUp.Support.SqlServer
             return string.Format("select [ScriptName] from {0} order by [ScriptName]", CreateTableName(schema, table));
         }
 
+        public IEnumerable<DBMigration> GetMigratedDBVersions()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Records a database upgrade for a database specified in a given connection string.
         /// </summary>
@@ -126,6 +132,21 @@ namespace DbUp.Support.SqlServer
                     command.ExecuteNonQuery();
                 }
             });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="migrationScript"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        public void StoreExecutedMigrationScript(DBMigrationScript migrationScript)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasDBVersionMigrated(long versionId, MigrationTypes dbMigrationType)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>Generates an SQL statement that, when exectuted, will create the journal database table.</summary>

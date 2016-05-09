@@ -1,3 +1,5 @@
+using DbUp.Migrations;
+
 namespace DbUp.ScriptProviders
 {
     using System;
@@ -48,5 +50,11 @@ namespace DbUp.ScriptProviders
 
             return sqlScripts;
         }
+
+        public IEnumerable<DBMigration> GetDBMigrations()
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

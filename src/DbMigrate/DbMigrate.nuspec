@@ -16,6 +16,7 @@
           <reference file="DbUp.MySql.dll" />
           <reference file="DbUp.Postgresql.dll" />
           <reference file="DbUp.dll" />
+          <reference file="DbMigrate.exe" />
         </references>
     </metadata>
     <files>

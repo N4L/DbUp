@@ -11,14 +11,17 @@
         <dependencies>
           <dependency id="MySql.Data" version="6.9.5" />
           <dependency id="Npgsql" version="2.2.1" />
-
         </dependencies>
+        <references>
+          <reference file="DbUp.MySql.dll" />
+          <reference file="DbUp.Postgresql.dll" />
+          <reference file="DbUp.dll" />
+        </references>
     </metadata>
     <files>
-      <file src="bin\$configuration$\DbUp.MySql.dll" target="lib\" />
-      <file src="bin\$configuration$\DbUp.MySql.pdb" target="lib\" />
-      <file src="bin\$configuration$\DbUp.MySql.xml" target="lib\" />
-      <file src="bin\$configuration$\DbMigrate.exe" target="" />
+      <file src="bin\$configuration$\DbUp.MySql.dll" target="lib\net452" />
+      <file src="bin\$configuration$\DbUp.Postgresql.dll" target="lib\net452" />
+      <file src="bin\$configuration$\DbUp.dll" target="lib\net452" />
     </files>
 </package>
 

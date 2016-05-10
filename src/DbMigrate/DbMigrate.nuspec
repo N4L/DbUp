@@ -9,8 +9,8 @@
         <description>Database Migration Tool</description>
         <tags>db migration</tags>
         <dependencies>
-          <dependency id="MySql.Data" version="6.9.5" targetFramework="net20" />
-          <dependency id="Npgsql" version="2.2.1" targetFramework="net40" />
+          <dependency id="MySql.Data" version="6.9.5" />
+          <dependency id="Npgsql" version="2.2.1" />
 
         </dependencies>
     </metadata>

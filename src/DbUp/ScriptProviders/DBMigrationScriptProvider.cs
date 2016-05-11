@@ -172,7 +172,7 @@ namespace DbUp.ScriptProviders
 
         private static CodeDomProvider GetCodeDomProvider()
         {
-            return new CSharpCodeProvider();
+            return new Microsoft.CodeDom.Providers.DotNetCompilerPlatform.CSharpCodeProvider(); ;
         }
 
         private static long? GetVersion(string filename)

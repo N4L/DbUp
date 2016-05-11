@@ -11,6 +11,9 @@
         <dependencies>
           <dependency id="MySql.Data" version="6.9.5" />
           <dependency id="Npgsql" version="2.2.1" />
+          <dependency id="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" version="1.0.1" />
+          <dependency id="Microsoft.Net.Compilers" version="1.2.1" />
+          <dependency id="Microsoft.CodeDom.Providers.DotNetCompilerPlatform.BinFix" version="1.0.0" />
         </dependencies>
         <references>
           <reference file="DbUp.MySql.dll" />

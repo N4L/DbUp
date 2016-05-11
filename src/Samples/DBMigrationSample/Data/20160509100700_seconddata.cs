@@ -5,14 +5,8 @@ namespace DBMigrationSample.Data
 {
     public class SecondData : DataMigration
     {
-        public override string UpScript
-        {
-            get { return ""; }
-        }
+        public override string UpScript => "";
 
-        public override long DependentSchemaVersionId
-        {
-            get { return 20160506100800; }
-        } 
+        public override long DependentSchemaVersionId => 20160506100800;
     }
 }

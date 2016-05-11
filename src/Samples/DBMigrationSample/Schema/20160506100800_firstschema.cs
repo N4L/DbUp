@@ -5,14 +5,8 @@ namespace DBMigrationSample.Schema
 {
     public class Firstschema : SchemaMigration
     {
-        public override string UpScript
-        {
-            get { return ""; }
-        }
+        public override string UpScript => "";
 
-        public override string DownScript
-        {
-            get { return ""; }
-        }
+        public override string DownScript => "";
     }
 }

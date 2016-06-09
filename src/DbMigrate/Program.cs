@@ -22,7 +22,7 @@ namespace DbMigrate
             var password = string.Empty;
             var dbProvider = string.Empty;
             var toVersionId = long.MaxValue;
-            var executionStep = ExecutionSteps.BeforeCode;
+            var targetingStep = TargetingSteps.All;
             bool mark = false;
             var connectionString = string.Empty;
 
@@ -46,13 +46,13 @@ namespace DbMigrate
                         switch (es.ToLower())
                         {
                             case "beforecode":
-                                executionStep = ExecutionSteps.BeforeCode;
+                                targetingStep = TargetingSteps.BeforeCode;
                                 break;
                             case "aftercode":
-                                executionStep = ExecutionSteps.AfterCode;
+                                targetingStep = TargetingSteps.AfterCode;
                                 break;
                             default:
-                                executionStep = ExecutionSteps.BeforeCode;
+                                targetingStep = TargetingSteps.All;
                                 break;
                         }
                     }
@@ -107,7 +107,7 @@ namespace DbMigrate
             if (!mark)
             {
                 if (ensure_database) EnsureDatabase.For.SqlDatabase(connectionString);
-                result = dbup.PerformDBMigration(toVersionId, executionStep);
+                result = dbup.PerformDBMigration(toVersionId, targetingStep);
             }
             else
             {

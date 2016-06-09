@@ -50,7 +50,7 @@ namespace DbUp.Engine
         /// <param name="toVersionId"></param>
         /// <param name="executionStep"></param>
         /// <returns></returns>
-        public DatabaseUpgradeResult PerformDBMigration(long toVersionId, ExecutionSteps executionStep)
+        public DatabaseUpgradeResult PerformDBMigration(long toVersionId, TargetingSteps targetingStep)
         {
             var executed = new List<DBMigrationScript>();
 
@@ -62,7 +62,7 @@ namespace DbUp.Engine
 
                     configuration.Log.WriteInformation("Beginning database migration");
 
-                    var migrationsToExecute = GetDBMigrationsToExecuteInsideOperation(toVersionId, executionStep);
+                    var migrationsToExecute = GetDBMigrationsToExecuteInsideOperation(toVersionId, targetingStep);
 
                     if (migrationsToExecute.Count == 0)
                     {
@@ -177,13 +177,14 @@ namespace DbUp.Engine
             return allScripts.Where(s => migratedDBVersions.All(y => y.ScriptName != s.Name)).ToList();
         }
 
-        private List<DBMigrationScript> GetDBMigrationsToExecuteInsideOperation(long toVersionId, ExecutionSteps executionStep)
+        private List<DBMigrationScript> GetDBMigrationsToExecuteInsideOperation(long toVersionId, TargetingSteps targetingStep)
         {
             var allMigrations =
                 configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetDBMigrations()).ToList();
 
-            //We only run migrations marked as BeforeCode or NoPreference at before code deployment step
-            if (executionStep == ExecutionSteps.BeforeCode)
+            //We only run migrations marked as BeforeCode at before code deployment step
+            //Run all missed migrations if targeting step set to AfterCode, just in case to catach up all missed the migrations
+            if (targetingStep == TargetingSteps.BeforeCode)
                 allMigrations =
                     allMigrations.Where(m => m.ShoudRunAt == ExecutionSteps.BeforeCode).ToList();
 

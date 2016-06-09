@@ -17,4 +17,11 @@ namespace DbUp.Support
         /// </summary>
         AfterCode
     }
+
+    public enum TargetingSteps
+    {
+        All,
+        BeforeCode,
+        AfterCode
+    }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Policy;
 using DbUp.Builder;
 using DbUp.Entities;
 using DbUp.Migrations;
+using DbUp.Support;
 
 namespace DbUp.Engine
 {
@@ -46,8 +48,9 @@ namespace DbUp.Engine
         /// 
         /// </summary>
         /// <param name="toVersionId"></param>
+        /// <param name="executionStep"></param>
         /// <returns></returns>
-        public DatabaseUpgradeResult PerformDBMigration(long toVersionId)
+        public DatabaseUpgradeResult PerformDBMigration(long toVersionId, ExecutionSteps executionStep)
         {
             var executed = new List<DBMigrationScript>();
 
@@ -59,7 +62,7 @@ namespace DbUp.Engine
 
                     configuration.Log.WriteInformation("Beginning database migration");
 
-                    var migrationsToExecute = GetDBMigrationsToExecuteInsideOperation(toVersionId);
+                    var migrationsToExecute = GetDBMigrationsToExecuteInsideOperation(toVersionId, executionStep);
 
                     if (migrationsToExecute.Count == 0)
                     {
@@ -174,20 +177,27 @@ namespace DbUp.Engine
             return allScripts.Where(s => migratedDBVersions.All(y => y.ScriptName != s.Name)).ToList();
         }
 
-        private List<DBMigrationScript> GetDBMigrationsToExecuteInsideOperation(long toVersionId)
+        private List<DBMigrationScript> GetDBMigrationsToExecuteInsideOperation(long toVersionId, ExecutionSteps executionStep)
         {
             var allMigrations =
                 configuration.ScriptProviders.SelectMany(scriptProvider => scriptProvider.GetDBMigrations()).ToList();
+
+            //We only run migrations marked as BeforeCode or NoPreference at before code deployment step
+            if (executionStep == ExecutionSteps.BeforeCode)
+                allMigrations =
+                    allMigrations.Where(m => m.ShoudRunAt == ExecutionSteps.BeforeCode || m.ShoudRunAt == ExecutionSteps.NoPreference).ToList();
 
             var migratedDBVersions = configuration.Journal.GetMigratedDBVersions();
 
             var missedMigrationScripts =
                 allMigrations.Where(s => migratedDBVersions.All(y => y.ScriptName != s.FileName) && s.VersionId <= toVersionId)
-                    .Select(m => m.GetType().IsSubclassOf(typeof (DataMigration))
-                        ? new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, string.Empty, MigrationTypes.Data,
-                            ((DataMigration) m).DependentSchemaVersionId, MigrationPerformTypes.Up)
-                        : new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, ((SchemaMigration) m).DownScript, MigrationTypes.Schema, null,
-                            MigrationPerformTypes.Up))
+                    .Select(
+                        m =>
+                            m.GetType().IsSubclassOf(typeof (DataMigration))
+                                ? new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, string.Empty, MigrationTypes.Data,
+                                    ((DataMigration) m).DependentSchemaVersionId, MigrationPerformTypes.Up)
+                                : new DBMigrationScript(m.VersionId, m.FileName, m.UpScript, ((SchemaMigration) m).DownScript, MigrationTypes.Schema,
+                                    null, MigrationPerformTypes.Up))
                     .OrderBy(s => s)
                     .ToList();
 

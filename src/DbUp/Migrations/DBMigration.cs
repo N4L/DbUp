@@ -1,5 +1,6 @@
 ﻿using System;
 using DbUp.Helpers;
+using DbUp.Support;
 
 namespace DbUp.Migrations
 {
@@ -12,6 +13,11 @@ namespace DbUp.Migrations
         /// 
         /// </summary>
         public abstract string UpScript { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public abstract ExecutionSteps ShoudRunAt { get; }
 
         /// <summary>
         /// 

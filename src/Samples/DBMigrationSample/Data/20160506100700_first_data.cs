@@ -1,5 +1,6 @@
 ﻿using System;
 using DbUp.Migrations;
+using DbUp.Support;
 
 namespace DBMigrationSample.Data
 {
@@ -9,6 +10,8 @@ namespace DBMigrationSample.Data
         {
             get { return ""; }
         }
+
+        public override ExecutionSteps ShoudRunAt => ExecutionSteps.NoPreference;
 
         public override long DependentSchemaVersionId
         {

@@ -1,49 +1,71 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.IO;
-using System.Runtime.CompilerServices;
+using DbUp;
 using DbUp.Builder;
 using DbUp.Engine;
 using DbUp.Engine.Output;
+using DbUp.Support;
 using NDesk.Options;
 
-namespace DbUp.Console
+namespace DbMigrate
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var server = "";
-            var database = "";
-            var schemaDirectory = "";
-            var dataDirectory = "";
-            var username = "";
-            var password = "";
-            var dbProvider = "";
+            var server = string.Empty;
+            var database = string.Empty;
+            var schemaDirectory = string.Empty;
+            var dataDirectory = string.Empty;
+            var username = string.Empty;
+            var password = string.Empty;
+            var dbProvider = string.Empty;
             var toVersionId = long.MaxValue;
+            var executionStep = ExecutionSteps.NoPreference;
             bool mark = false;
-            var connectionString = "";
+            var connectionString = string.Empty;
 
             bool show_help = false;
             bool ensure_database = false;
 
-            var optionSet = new OptionSet() {
-                { "s|server=", "the SQL Server host", s => server = s },
-                { "db|database=", "database to upgrade", d => database = d},
-                { "sd|schemaDirectory=", "directory containing DB Schema Update files", dir => schemaDirectory = dir },
-                { "dd|dataDirectory=", "directory containing DB Data Update files", dir => dataDirectory = dir },
-                { "v|version=", "apply the migration until version id", vid => toVersionId = long.Parse(vid) },
-                { "e|ensure", "ensure datbase exists", e => ensure_database = e != null },
-                { "u|user=", "Database username", u => username = u},
-                { "p|password=", "Database password", p => password = p},
-                { "cs|connectionString=", "Full connection string", cs => connectionString = cs},
-                { "dbp|databaseProvider=", "database provider (SQLServer, MySql or PostgreSql)", dbp => dbProvider = dbp },
-                { "h|help",  "show this message and exit", v => show_help = v != null },
-                { "mark", "Mark scripts as executed but take no action", m => mark = true}
+            var optionSet = new OptionSet()
+            {
+                {"s|server=", "the SQL Server host", s => server = s},
+                {"db|database=", "database to upgrade", d => database = d},
+                {"sd|schemaDirectory=", "directory containing DB Schema Update files", dir => schemaDirectory = dir},
+                {"dd|dataDirectory=", "directory containing DB Data Update files", dir => dataDirectory = dir},
+                {"v|version=", "apply the migration until version id", vid => toVersionId = long.Parse(vid)},
+                {"e|ensure", "ensure datbase exists", e => ensure_database = e != null},
+                {"u|user=", "Database username", u => username = u},
+                {"es|executionStep=", "What step(s) of the migration scripts should run (BeforeCode, AfterCode, All)",
+                    es =>
+                    {
+                        if (es == null) es = string.Empty;
+
+                        switch (es.ToLower())
+                        {
+                            case "beforecode":
+                                executionStep = ExecutionSteps.BeforeCode;
+                                break;
+                            case "aftercode":
+                                executionStep = ExecutionSteps.AfterCode;
+                                break;
+                            default:
+                                executionStep = ExecutionSteps.NoPreference;
+                                break;
+                        }
+                    }
+                },
+                {"p|password=", "Database password", p => password = p},
+                {"cs|connectionString=", "Full connection string", cs => connectionString = cs},
+                {"dbp|databaseProvider=", "database provider (SQLServer, MySql or PostgreSql)", dbp => dbProvider = dbp},
+                {"h|help", "show this message and exit", v => show_help = v != null},
+                {"mark", "Mark scripts as executed but take no action", m => mark = true}
             };
 
             optionSet.Parse(args);
-
+            
             if (args.Length == 0)
                 show_help = true;
 
@@ -85,7 +107,7 @@ namespace DbUp.Console
             if (!mark)
             {
                 if (ensure_database) EnsureDatabase.For.SqlDatabase(connectionString);
-                result = dbup.PerformDBMigration(toVersionId);
+                result = dbup.PerformDBMigration(toVersionId, executionStep);
             }
             else
             {

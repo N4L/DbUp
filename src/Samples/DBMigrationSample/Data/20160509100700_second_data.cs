@@ -1,5 +1,6 @@
 ﻿using System;
 using DbUp.Migrations;
+using DbUp.Support;
 
 namespace DBMigrationSample.Data
 {
@@ -7,6 +8,8 @@ namespace DBMigrationSample.Data
     {
         public override string UpScript => "";
 
+        public override ExecutionSteps ShoudRunAt => ExecutionSteps.NoPreference;
+            
         public override long DependentSchemaVersionId => 20160506100800;
     }
 }

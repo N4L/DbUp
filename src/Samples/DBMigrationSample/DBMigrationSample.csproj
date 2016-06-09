@@ -40,8 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\20160509100700_seconddata.cs" />
-    <Compile Include="Data\20160506100700_firstdata.cs" />
+    <Compile Include="Data\20160609100700_beforecode_data.cs" />
+    <Compile Include="Data\20160609100700_aftercode_data.cs" />
+    <Compile Include="Data\20160509100700_second_data.cs" />
+    <Compile Include="Data\20160506100700_first_data.cs" />
+    <Compile Include="Schema\20160609150800_aftercode_schema.cs" />
+    <Compile Include="Schema\20160609100800_beforecode_schema.cs" />
     <Compile Include="Schema\20160506100800_firstschema.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -185,7 +185,7 @@ namespace DbUp.Engine
             //We only run migrations marked as BeforeCode or NoPreference at before code deployment step
             if (executionStep == ExecutionSteps.BeforeCode)
                 allMigrations =
-                    allMigrations.Where(m => m.ShoudRunAt == ExecutionSteps.BeforeCode || m.ShoudRunAt == ExecutionSteps.NoPreference).ToList();
+                    allMigrations.Where(m => m.ShoudRunAt == ExecutionSteps.BeforeCode).ToList();
 
             var migratedDBVersions = configuration.Journal.GetMigratedDBVersions();
 

@@ -22,7 +22,7 @@ namespace DbMigrate
             var password = string.Empty;
             var dbProvider = string.Empty;
             var toVersionId = long.MaxValue;
-            var executionStep = ExecutionSteps.NoPreference;
+            var executionStep = ExecutionSteps.BeforeCode;
             bool mark = false;
             var connectionString = string.Empty;
 
@@ -52,7 +52,7 @@ namespace DbMigrate
                                 executionStep = ExecutionSteps.AfterCode;
                                 break;
                             default:
-                                executionStep = ExecutionSteps.NoPreference;
+                                executionStep = ExecutionSteps.BeforeCode;
                                 break;
                         }
                     }

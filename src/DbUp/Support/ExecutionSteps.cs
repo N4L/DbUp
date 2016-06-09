@@ -8,11 +8,6 @@ namespace DbUp.Support
     public enum ExecutionSteps
     {
         /// <summary>
-        /// 
-        /// </summary>
-        NoPreference,
-
-        /// <summary>
         /// Before code deployment
         /// </summary>
         BeforeCode,

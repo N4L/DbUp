@@ -11,7 +11,7 @@ namespace DBMigrationSample.Data
             get { return ""; }
         }
 
-        public override ExecutionSteps ShoudRunAt => ExecutionSteps.NoPreference;
+        public override ExecutionSteps ShoudRunAt => ExecutionSteps.BeforeCode;
 
         public override long DependentSchemaVersionId
         {

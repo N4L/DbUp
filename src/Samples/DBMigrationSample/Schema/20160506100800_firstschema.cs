@@ -8,7 +8,7 @@ namespace DBMigrationSample.Schema
     {
         public override string UpScript => "";
 
-        public override ExecutionSteps ShoudRunAt => ExecutionSteps.NoPreference;
+        public override ExecutionSteps ShoudRunAt => ExecutionSteps.BeforeCode;
 
         public override string DownScript => "";
     }

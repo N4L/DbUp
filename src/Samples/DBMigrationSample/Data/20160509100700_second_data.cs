@@ -8,7 +8,7 @@ namespace DBMigrationSample.Data
     {
         public override string UpScript => "";
 
-        public override ExecutionSteps ShoudRunAt => ExecutionSteps.NoPreference;
+        public override ExecutionSteps ShoudRunAt => ExecutionSteps.BeforeCode;
             
         public override long DependentSchemaVersionId => 20160506100800;
     }

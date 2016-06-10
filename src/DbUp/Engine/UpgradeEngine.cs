@@ -191,7 +191,7 @@ namespace DbUp.Engine
             var migratedDBVersions = configuration.Journal.GetMigratedDBVersions();
 
             var missedMigrationScripts =
-                allMigrations.Where(s => migratedDBVersions.All(y => y.ScriptName != s.FileName) && s.VersionId <= toVersionId)
+                allMigrations.Where(s => migratedDBVersions.All(y => y.ScriptName != s.FileName && y.VersionId != s.VersionId) && s.VersionId <= toVersionId)
                     .Select(
                         m =>
                             m.GetType().IsSubclassOf(typeof (DataMigration))
